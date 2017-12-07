@@ -1,0 +1,4 @@
+importFrom(stats, filter)
+import(dplyr, except=c(lag, filter))
+export(test_fun)
+

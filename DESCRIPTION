@@ -1,0 +1,14 @@
+Package: test
+Title: A Package For Testing
+Description: Only purpose of this package is to build tests that require that
+    require a full package.
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Brodie", "Gaslam", email="brodie.gaslam@yahoo.com",
+    role=c("aut", "cre"))
+    )
+Imports: dplyr
+License: GPL (>=2)
+LazyData: true
+RoxygenNote: 6.0.1.9000
+Roxygen: list(markdown = TRUE)
