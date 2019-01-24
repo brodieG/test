@@ -1,0 +1,94 @@
+
+# setClassUnion Unloading Issue
+
+I'm encountering a problem caused by class unions from unloaded packages that
+are referenced by the still-loaded subclasses.  In essence, when the class union
+is loaded initially, it registers itself as a super class of the component
+classes in the S4 cache.  When the package the class union lives in is unloaded,
+it does not undo that registration.  Here is an MRE of the problems it causes:
+
+
+    ## the character and NULL basic types, and install it
+    testpkg <- tempfile()
+    dir.create(file.path(testpkg, 'R'), recursive=TRUE)
+    writeLines('', file.path(testpkg, 'NAMESPACE'))
+    description <- 'Package: testpkg\nTitle: Textpkg\nVersion: 0.1\n'
+    writeLines(description, file.path(testpkg, 'DESCRIPTION'))
+    code <- 'setClassUnion("chrOrNULL", c("character", "NULL"))'
+    writeLines(code, file.path(testpkg, 'R', 'union.R'))
+    install.packages(testpkg, repos=NULL, type='src')
+
+    ## Load the package and check validity of a character object
+    library('testpkg')
+    validObject('hello')
+    ## [1] TRUE
+
+    ## Detach, unload, and confirm that superclass is still attached
+    ## to character
+    detach('package:testpkg', unload=TRUE)
+    getClassDef('character')
+    ## Class "character" [package "methods"]
+    ## 
+    ## No Slots, prototype of class "character"
+    ## 
+    ## Extends: "vector", "data.frameRowLabels", "SuperClassMethod", "chrOrNULL"
+    ## 
+    ## Known Subclasses: 
+    ## Class "signature", from data part
+    ## Class "className", from data part
+    ## Class "ObjectsWithPackage", from data part
+
+    ## `validObject` now fails:
+    validObject('hello')
+    ## Loading required package: testpkg
+    ## Error in validObject("hello") : 
+    ##   invalid class "character" object: superclass "chrOrNULL" not defined 
+    ##   in the environment of the object's class
+
+    ## But if we run it again it works
+    validObject('hello')
+    ## [1] TRUE
+
+There are two issues:
+
+1. Whether the dangling superclass association in the `character` (and `NULL`)
+   classes after the detach/unload is desirable.
+2. That the attempt to reload the package to retrieve the class definition fails
+   after the first call to `validObject`, though not the second.
+
+I can see how it may be desirable to keep true superclasses associated with
+objects, even if somehow the package that contains them is unloaded.  The case
+for class unions _seems_ much weaker. I should not need to reload
+my package to check validity of something like 'character'.  In my
+actual use case I had a class that contained 'character' among other things that
+I was checking with `validObject(..., complete=TRUE)`.
+
+I attach a patch that adds a cleanup step to `cacheMetaData` which is kicked off
+by the package unload process. I grant I'm not an expert in these matters and
+there could very well be an important use case where removing the references is
+undesirable.
+
+This brings us to the second issue: even if the first patch is undesirable,
+`validObject` fails while attempting to reload the class definition.  I believe
+the error that occurs when we try to run `validObject` the first time happens in
+the `validObject` -> `getClassDef` -> `.requirePackage` set of calls.  When
+`.requirePackage` does not find our package already loaded, it loads, attaches
+it, and returns the _package_ environment.  This is different to what happens
+when the package namespace is already loaded, in which case the _namespace_
+environment is returned.
+
+The problem with the _package_ environment is that any unexported class
+definitions will not be found there.  This is why `validObject` fails the first
+time, but works the second.  The first time the package is loaded and
+`getClassDef` is given the package env to look in, but it can't find 'chrOrNULL'
+because it is not exported.  The second time `.requirePackage` finds the
+namespace from the prior load and returns that, and this does have the class
+definition.
+
+Since `.requirePackage` is used much more broadly than `cacheMetaData`, I am
+reluctant to submit a patch without feedback from those more knowledgeable of
+the inner workings of S4.
+
+I ran `make check-all` on a recent version of R-devel with the patch applied,
+and everything came back OK.  However, I'm guessing there isn't much natural
+testing of unloading packages, so this probably requires extra scrutiny.

@@ -1,0 +1,58 @@
+# setClassUnion Unloading Issue
+
+I'm encountering a problem caused by class unions from unloaded packages that
+involve still-loaded classes.  In essence, when the class union is loaded
+initially, it registers itself as a super class of the component classes in the
+S4 cache.  When the package the class union lives in is unloaded, it does not
+undo that registration.  Here is a MRE:
+
+
+    ## create package
+    testpkg <- tempfile()
+    dir.create(file.path(testpkg, 'R'), recursive=TRUE)
+    writeLines('', file.path(testpkg, 'NAMESPACE'))
+    description <-
+    'Package: testpkg
+    Title: A Package For Testing
+    Description: A Package For Testing.
+    Version: 0.01
+    Author: Brodie Gaslam
+    License: GPL (>=2)
+    '
+    writeLines(description, file.path(testpkg, 'DESCRIPTION'))
+    writeLines(
+      'setClassUnion("chrOrNULL", c("character", "NULL"))',
+      file.path(testpkg, 'R', 'union.R')
+    )
+
+    ## install and load
+    install.packages(testpkg, repos=NULL, type='src')
+    library('testpkg')
+
+    ## note union is now shown as super class to character
+    getClassDef('character')
+    validObject("hello")
+
+
+    detach('package:testpkg', unload=TRUE)
+    validObject("hello")
+
+There are two issues:
+
+1. the dangling definition
+2. validObject tries to get the superclass with getClass, which defaults to
+   getting it from the cache, and then tries to require the package.  Problem
+   seems to be that `.requirePackage()` call in `getClassDef` does not lead to
+   the class name being put where it is expected.
+
+This call `get0(cname, whereP, inherits = inherits)` with `cname` ==  `[1] ".__C__chrOrNULL"`  fails.
+
+Note there was a change in this code in 74651.
+
+The reason the `get0` business does not work is that what is returned is the
+package environment, not the namespace.  There is some question as to whether
+this makes sense, in particular, is it possible to have for a superclass a non
+exported class from another package.  If the answer is now, then this is fine
+and it is an artifact of not considering the class union case, and making sure
+that class unions are cleaned up after the fact should be sufficient to fix the
+problem.

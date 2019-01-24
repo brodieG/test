@@ -1,0 +1,19 @@
+Index: src/library/methods/R/RMethodUtils.R
+===================================================================
+--- src/library/methods/R/RMethodUtils.R	(revision 76003)
++++ src/library/methods/R/RMethodUtils.R	(working copy)
+@@ -830,6 +830,14 @@
+                identical(cldef@package, pkg)) {
+                 .uncacheClass(cl, cldef)
+                 .removeSuperclassBackRefs(cl, cldef, searchWhere)
++                # Adapted from `removeClass` we need to de-register references
++                # to union superclasses from the package being detached
++                if(is(cldef, 'ClassUnionRepresentation') &&
++                   length(cldef@subclasses)) {
++                    subclasses <- names(cldef@subclasses)
++                    for(what in subclasses)
++                        .removeSuperClass(what, cl)
++                }
+             }
+         }
+     }
