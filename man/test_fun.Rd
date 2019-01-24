@@ -4,8 +4,8 @@
 \alias{test_fun}
 \title{A document}
 \usage{
-test_fun()
+test_fun(x)
 }
 \description{
-Hello a && b, \code{a &amp;&amp; b}, \code{a \&amp;\&amp; b} \code{a && b}
+Blah Blah
 }
