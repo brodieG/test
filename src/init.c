@@ -21,7 +21,7 @@
 
 static const
 R_CallMethodDef callMethods[] = {
-  {"test_fun", (DL_FUNC) &TEST_test_fun, 1},
+  {"trunc_to_valid", (DL_FUNC) &TEST_trunc_to_valid, 3},
   {NULL, NULL, 0}
 };
 

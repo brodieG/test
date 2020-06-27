@@ -20,4 +20,6 @@ Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 #include <R.h>
 #include <Rinternals.h>
 
-SEXP TEST_test_fun(SEXP x);
+#define mbs_init(x) memset(x, 0, sizeof(mbstate_t))
+
+SEXP TEST_trunc_to_valid(SEXP x, SEXP xi, SEXP mode);
