@@ -1,5 +1,12 @@
 x <- rep(paste0(readRDS('lorem.cn.RDS'), collapse=''), 1000)
 
-system.time(trunc_speed(x, 128L, TRUE))
-system.time(trunc_speed(x, 128L, FALSE))
+microbenchmark::microbenchmark(
+  trunc_speed(x, 512L, TRUE), trunc_speed(x, 512L, FALSE)
+)
+microbenchmark::microbenchmark(
+  trunc_speed(x, 128L, TRUE), trunc_speed(x, 128L, FALSE)
+)
+
+system.time()
+system.time()
 
