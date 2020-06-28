@@ -1,11 +1,6 @@
-# Test Package
+# String Truncation Test Package
 
-May be used for a variety of things.  Be sure to rely on published tags as
-branches may change in arbitrary and capricious ways.
+Testing implementation of multi-byte-safe string truncation.
 
-## String Trimming
+See 'tests/tests.R' for details.
 
-* Useful reference on [multi-byte encodings][1], gives examples of the types of
-  thing that affect `mbstate_t`.
-
-[1]: https://www.mers.byu.edu/docs/standardC/charset.html#conversion%20state
