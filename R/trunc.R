@@ -38,6 +38,26 @@ trunc_multi <- function(x) {
   x <- rep_len(x, length.out=length(i))
   structure(.Call(TEST_trunc_to_valid, x, i, 0L), class='trunc_test')
 }
+#' Test Truncation Speed
+#'
+#' This is intended to be called with a scalar character repeated many times,
+#' but we keep the repetition out of the function so that it does not need to be
+#' part of the timing run.
+#'
+#' @param x character, where the first element is the longest of all elements
+#'   byte-wise (bad things may happen otherwise)
+#' @param n integer truncation point, should be less than the length of the
+#'   shortest element in `x` (bad things may happen otherwise)
+#' @param utf8 TRUE or FALSE whether to use the UTF-8 truncation or the other
+#'   normal multi-byte one.
+#' @return integer a somewhat arbitrary number the only purpose of which is to
+#'   ensure the compiler doesn't get too creative.
+#' @export
+
+trunc_speed <- function(x, n, utf8=TRUE) {
+  stopifnot(length(n) == 1L)
+  .Call(TEST_trunc_speed, x, n, utf8+0L)
+}
 
 #' @export
 

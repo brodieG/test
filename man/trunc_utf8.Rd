@@ -3,11 +3,14 @@
 \name{trunc_utf8}
 \alias{trunc_utf8}
 \alias{trunc_multi}
+\alias{trunc_speed}
 \title{Test Truncation Functions}
 \usage{
 trunc_utf8(x)
 
 trunc_multi(x)
+
+trunc_speed(x, n, utf8 = TRUE)
 }
 \arguments{
 \item{x}{scalar character}
