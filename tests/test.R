@@ -34,7 +34,7 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
   # Assorted JIS code points
   jis <- matrix(
     c(
-      0x21, 0x78,  # 00A7 section 
+      0x21, 0x78,  # 00A7 section
       0x22, 0x27,  # 25BC dark triangle down
       0x26, 0x38,  # 03A9 Omega
       0x32, 0x15   # Kanji?
@@ -88,8 +88,11 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
       0x2d,
       0x8E, 0xA0 + 21L,         # halfwidth kana
       0x2d,
+      # weird things happen if not a space first after the following sequence.
+      # there is some odd continuation artifact that occurs, and you can see it
+      # in the case before we add the space.
       0x8F, c(40L, 10L) + 0xA0, # 3 byte
-      0x20, 0x2d                # weird things happen if not a space first
+      0x20, 0x2d
   ) )
   phrase <- rawToChar(raw)
   writeLines(phrase)
