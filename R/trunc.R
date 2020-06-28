@@ -13,6 +13,8 @@
 #' Will attempt to truncate character from 0 bytes to n+1 bytes, where n is the
 #' number of bytes in the input.
 #'
+#' There is a print method for the return object format.
+#'
 #' @param x scalar character
 #' @return a "trunc_test" object
 #' @useDynLib test, .registration=TRUE, .fixes="TEST_"
