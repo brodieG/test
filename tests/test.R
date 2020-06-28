@@ -1,14 +1,12 @@
+# Test truncation under different locales.  To use, pre-set the LC_CTYPE locale
+# variable to a UTF-8 locale, SJIS, or EUCJP.  Make sure your console is also
+# set to interpret those encodings as otherwise you'll see garbage even if
+# everything else is working as expected..
+
+# LC_CTYPE=ja_JP.SJIS R --no-save
+# LC_CTYPE=ja_JP.eucJP R --no-save
 
 library(test)
-
-# scenarios to test
-# Truncate a long a string containing utf8 sequences
-# Bad utf8
-# * Overlong/short sequence
-# * 5 byte technically valid sequence?
-# * No intial byte
-# * Only UTF-8
-# * In sequence initial
 
 if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
   # 2 and 3 bytes
@@ -28,10 +26,10 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
   print(trunc_utf8("\xc3#"))
   print(trunc_utf8("#\xa7#"))
 } else if (grepl("SJIS", Sys.getlocale(category='LC_CTYPE'))) {
-  # To run these start R with (or similar):
-  # LC_CTYPE=ja_JP.SJIS R --no-save
+  # Assorted JIS code points.
+  # Despite name, Shift JIS does not have a shift persistent state, unlike
+  # "plain" JIS (2022), not tested here.
 
-  # Assorted JIS code points
   jis <- matrix(
     c(
       0x21, 0x78,  # 00A7 section
@@ -88,9 +86,10 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
       0x2d,
       0x8E, 0xA0 + 21L,         # halfwidth kana
       0x2d,
-      # weird things happen if not a space first after the following sequence.
-      # there is some odd continuation artifact that occurs, and you can see it
-      # in the case before we add the space.
+      # weird things happen if not a space first after the following sequence on
+      # OS-X terminal.  It appears subsequent bytes are interpreted as either
+      # some continuation of strokes, or as an additional character.  iTerm does
+      # not recognize the 3 byte sequences at all.
       0x8F, c(40L, 10L) + 0xA0, # 3 byte
       0x20, 0x2d
   ) )
@@ -98,7 +97,7 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
   writeLines(phrase)
   print(trunc_multi(phrase))
 } else {
-  stop("Tests configured only for UTF8 or SJIS locales")
+  stop("Tests configured only for UTF8, SJIS, or EUCJP locales")
 }
 
 

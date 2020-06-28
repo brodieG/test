@@ -9,8 +9,11 @@ static char* mbcsTruncateToValid(char *s)
     if (!mbcslocale || *s == '\0')
 	return s;
 
+    mbstate_t mb_st;
     size_t slen = strlen(s); /* at least 1 */
     size_t goodlen = 0;
+
+    mbs_init(&mb_st);
 
     if (utf8locale) {
         /* UTF-8 is self-synchronizing so we can look back from end for first
@@ -21,18 +24,16 @@ static char* mbcsTruncateToValid(char *s)
             --goodlen;
         }
     }
-    mbstate_t mb_st;
-    mbs_init(&mb_st);
     while(goodlen < slen) {
-        size_t res;
-        res = mbrtowc(NULL, s + goodlen, slen - goodlen, &mb_st);
-        if (res == (size_t) -1 || res == (size_t) -2) {
-            /* strip off all remaining characters */
-            for(;goodlen < slen; goodlen++)
-                s[goodlen] = '\0';
-            return s;
-        }
-        goodlen += res;
+	size_t res;
+	res = mbrtowc(NULL, s + goodlen, slen - goodlen, &mb_st);
+	if (res == (size_t) -1 || res == (size_t) -2) {
+	    /* strip off all remaining characters */
+	    for(;goodlen < slen; goodlen++)
+		s[goodlen] = '\0';
+	    return s;
+	}
+	goodlen += res;
     }
     return s;
 }
