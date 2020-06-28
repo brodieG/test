@@ -33,6 +33,7 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
   jis <- matrix(
     c(
       0x21, 0x78,  # 00A7 section
+                   # we'll add half-width katakana here
       0x22, 0x27,  # 25BC dark triangle down
       0x26, 0x38,  # 03A9 Omega
       0x32, 0x15   # Kanji?
@@ -46,7 +47,7 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
   raw <- as.raw(
     c(
       0x2d, as.integer(sjis[1,]),
-      0x2d, 0xC7,
+      0x2d, 0xC7,                    # half width katakana
       0x2d, as.integer(sjis[2,]),
       0x2d, as.integer(sjis[3,]),
       0x2d, as.integer(sjis[4,]),
@@ -57,7 +58,11 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
   writeLines(phrase)
   print(trunc_multi(phrase))
 
-  # Make an invalid sequence
+  # Make invalid sequences.  AFAICT on OS X mbrtowc considers any of the two
+  # byte sequences below to be "valid" so long as they are complete (i.e. second
+  # byte is not null), without much regard to what is and is not a valid
+  # encoding.  This means the string does not get truncated to before the first
+  # invalid sequence.
 
   raw[3] <- as.raw(0x20)
   phrase <- rawToChar(raw)
@@ -71,7 +76,6 @@ if(grepl("UTF-8", Sys.getlocale(category='LC_CTYPE'))) {
   phrase <- rawToChar(raw)
   writeLines(phrase)
   print(trunc_multi(phrase))
-
 } else if(grepl("EUCJP", Sys.getlocale(category='LC_CTYPE'), ignore.case=TRUE)) {
   # two high bytes in 0xA1-0xFE
   # or 0x8E followe by 0xA1-0xDF for half width kana
