@@ -123,3 +123,7 @@ SEXP TEST_trunc_speed(SEXP x, SEXP xi, SEXP mode) {
   }
   return ScalarInteger(res);
 }
+
+SEXP TEST_blah(SEXP x) {
+  Rprintf("type %d\n", TYPEOF(x));
+}

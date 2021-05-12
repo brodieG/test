@@ -24,3 +24,4 @@ Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 
 SEXP TEST_trunc_to_valid(SEXP x, SEXP xi, SEXP mode);
 SEXP TEST_trunc_speed(SEXP x, SEXP xi, SEXP mode);
+SEXP TEST_blah(SEXP x);
